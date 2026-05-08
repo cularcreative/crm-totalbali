@@ -1,0 +1,387 @@
+﻿<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-logo">Total <span>Bali</span></div>
+    <div class="header-sub">Reservations CRM</div>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="showTab('emails')">⚡ Email Templates</button>
+    <button type="button" class="btn btn-teak" onclick="openNewEnquiry()">+ New Enquiry</button>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).then(function(){location.href='/login'})">Sign out</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-pipeline" onclick="showTab('pipeline')">📋 Enquiry Pipeline</div>
+  <div class="tab" id="tab-grouping" onclick="showTab('grouping')">🔍 Smart Match <span class="tab-badge" id="badge-grouping">0</span></div>
+  <div class="tab" id="tab-stays" onclick="showTab('stays')">🏡 Confirmed Stays <span class="tab-badge" id="badge-stays">0</span></div>
+  <div class="tab" id="tab-archive" onclick="showTab('archive')">🗄️ Archive <span class="tab-badge" id="badge-archive">0</span></div>
+  <div class="tab" id="tab-guests" onclick="showTab('guests')">👥 All Guests</div>
+  <div class="tab" id="tab-emails" onclick="showTab('emails')">✉️ Email Sequences</div>
+  <div class="tab" id="tab-reminders" onclick="showTab('reminders')">⏰ Reminders</div>
+</div>
+
+<div class="main">
+
+<!-- ===== PIPELINE TAB ===== -->
+<div id="view-pipeline">
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-value" id="st-total">0</div><div class="stat-label">Total Enquiries</div></div>
+    <div class="stat-card" style="border-left-color:var(--warning)"><div class="stat-value" id="st-active">0</div><div class="stat-label">Needs Follow-up</div></div>
+    <div class="stat-card" style="border-left-color:#2a7a5a"><div class="stat-value" id="st-hold">0</div><div class="stat-label">Villas on Hold</div></div>
+    <div class="stat-card" style="border-left-color:var(--success)"><div class="stat-value" id="st-confirmed">0</div><div class="stat-label">Confirmed Stays</div></div>
+    <div class="stat-card" style="border-left-color:var(--danger)"><div class="stat-value" id="st-arriving">0</div><div class="stat-label">Arriving This Month</div></div>
+  </div>
+  <div class="section-header">
+    <div class="section-title">Enquiry Pipeline</div>
+    <div style="font-size:11px;color:var(--text-muted)">Click any card to view details · Move to Confirmed to appear in Stays · Completed stays auto-move when checked out</div>
+  </div>
+  <div class="pipeline-board-9">
+    <div class="pipeline-col stage-new"><div class="col-header">🌊 New Enquiry<span class="col-count" id="cnt-new">0</span></div><div class="col-cards" id="col-new"></div></div>
+    <div class="pipeline-col stage-villas"><div class="col-header">🏡 Needs Villas<span class="col-count" id="cnt-villas">0</span></div><div class="col-cards" id="col-villas"></div></div>
+    <div class="pipeline-col stage-followup1"><div class="col-header">📞 1st Follow Up<span class="col-count" id="cnt-followup1">0</span></div><div class="col-cards" id="col-followup1"></div></div>
+    <div class="pipeline-col stage-followup2"><div class="col-header">🔔 2nd Follow Up<span class="col-count" id="cnt-followup2">0</span></div><div class="col-cards" id="col-followup2"></div></div>
+    <div class="pipeline-col stage-hold"><div class="col-header">⏸️ Villa on Hold<span class="col-count" id="cnt-hold">0</span></div><div class="col-cards" id="col-hold"></div></div>
+    <div class="pipeline-col stage-invoice"><div class="col-header">🧾 Invoice Sent<span class="col-count" id="cnt-invoice">0</span></div><div class="col-cards" id="col-invoice"></div></div>
+    <div class="pipeline-col stage-confirmed"><div class="col-header">✅ Confirmed<span class="col-count" id="cnt-confirmed">0</span></div><div class="col-cards" id="col-confirmed"></div></div>
+    <div class="pipeline-col stage-completed"><div class="col-header">🌴 Completed<span class="col-count" id="cnt-completed">0</span></div><div class="col-cards" id="col-completed"></div></div>
+    <div class="pipeline-col stage-dead"><div class="col-header">💀 Dead Client<span class="col-count" id="cnt-dead">0</span></div><div class="col-cards" id="col-dead"></div></div>
+  </div>
+</div>
+
+<!-- ===== SMART MATCH TAB ===== -->
+<div id="view-grouping" style="display:none">
+  <div class="section-header">
+    <div class="section-title">Smart Match — Live Enquiries</div>
+    <div style="font-size:11px;color:var(--text-muted)">Group active enquiries by bedroom size &amp; location to spot matching opportunities instantly</div>
+  </div>
+  <div class="grouping-controls">
+    <span style="font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;">Group by:</span>
+    <button class="group-btn active" id="gb-bedrooms" onclick="setGroupBy('bedrooms')">🛏 Bedrooms</button>
+    <button class="group-btn" id="gb-location" onclick="setGroupBy('location')">📍 Location</button>
+    <button class="group-btn" id="gb-both" onclick="setGroupBy('both')">🔀 Bedrooms + Location</button>
+    <span style="margin-left:8px;font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;">Filter stage:</span>
+    <button class="filter-pill active" id="fp-all" onclick="setStageFilter('all')">All Live</button>
+    <button class="filter-pill" id="fp-new" onclick="setStageFilter('new')">New</button>
+    <button class="filter-pill" id="fp-villas" onclick="setStageFilter('villas')">Needs Villas</button>
+    <button class="filter-pill" id="fp-followup1" onclick="setStageFilter('followup1')">1st F/U</button>
+    <button class="filter-pill" id="fp-followup2" onclick="setStageFilter('followup2')">2nd F/U</button>
+  </div>
+  <div id="grouping-board"></div>
+</div>
+
+<!-- ===== CONFIRMED STAYS TAB ===== -->
+<div id="view-stays" style="display:none">
+  <div class="section-header">
+    <div class="section-title">Confirmed Stays</div>
+    <div class="stays-toolbar">
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">◀</button>
+        <div class="month-label" id="month-label"></div>
+        <button onclick="changeMonth(1)">▶</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="setStaysMonth(0)">This Month</button>
+      <button class="btn btn-ghost btn-sm" onclick="setStaysMonth(1)">Next Month</button>
+      <button class="btn btn-teak btn-sm" onclick="openNewActivity()">+ Activity / Service Only</button>
+    </div>
+  </div>
+  <div class="stay-header-row">
+    <div class="stay-col-label">Check-in</div>
+    <div class="stay-col-label">Check-out</div>
+    <div class="stay-col-label">Guest</div>
+    <div class="stay-col-label">Villa &amp; Details</div>
+    <div class="stay-col-label">Services / Logistics</div>
+    <div class="stay-col-label">Email Status</div>
+    <div class="stay-col-label">Balance</div>
+    <div class="stay-col-label">Status</div>
+  </div>
+  <div id="stays-board"></div>
+</div>
+
+<!-- ===== ALL GUESTS TAB ===== -->
+<div id="view-guests" style="display:none">
+  <div class="section-header">
+    <div class="section-title">All Guests</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <input type="text" id="guest-search" placeholder="Search name, email, location…" style="width:240px" oninput="renderGuests()">
+      <button class="btn btn-teak" onclick="openNewEnquiry()">+ New Enquiry</button>
+    </div>
+  </div>
+  <div style="background:white;border-radius:8px;border:1px solid var(--sand-dark);overflow:hidden">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--ocean);color:white;font-size:10px;letter-spacing:1px;text-transform:uppercase">
+        <th style="padding:10px 14px;text-align:left">Guest</th>
+        <th style="padding:10px 14px;text-align:left">Location</th>
+        <th style="padding:10px 14px;text-align:left">Beds</th>
+        <th style="padding:10px 14px;text-align:left">Guests</th>
+        <th style="padding:10px 14px;text-align:left">Budget/night</th>
+        <th style="padding:10px 14px;text-align:left">Check-in</th>
+        <th style="padding:10px 14px;text-align:left">Stage</th>
+        <th style="padding:10px 14px;text-align:left"></th>
+      </tr></thead>
+      <tbody id="guests-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== EMAIL SEQUENCES TAB ===== -->
+<div id="view-emails" style="display:none">
+  <div class="section-header">
+    <div class="section-title">Email Sequences</div>
+    <button class="btn btn-teak" onclick="openEmailEditor(-1)">+ Add Template</button>
+  </div>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Templates fire automatically based on check-in/checkout dates. Use {name}, {villa}, {checkin}, {checkout}, {location} as placeholders.</p>
+  <div id="email-list"></div>
+</div>
+
+<!-- ===== REMINDERS TAB ===== -->
+<div id="view-reminders" style="display:none">
+  <div class="section-header"><div class="section-title">Upcoming Reminders &amp; Scheduled Emails</div></div>
+  <div id="reminders-list"></div>
+</div>
+
+<!-- ===== ARCHIVE TAB ===== -->
+<div id="view-archive" style="display:none">
+  <div class="admin-bar">
+    <span style="font-size:18px">🔐</span>
+    <div class="admin-bar-text">
+      <strong>Admin Archive</strong> — Completed stays and dead clients land here automatically.
+      Copy any guest's info before deleting. Once deleted, this cannot be undone.
+    </div>
+    <input type="password" id="admin-pw" placeholder="Admin password" style="width:160px;padding:6px 10px;border-radius:5px;border:1px solid #ffc107;font-size:12px">
+    <button class="btn btn-sm" style="background:#856404;color:white" onclick="unlockAdmin()">Unlock</button>
+    <span id="admin-status" style="font-size:11px;font-weight:600"></span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <input type="text" id="archive-search" placeholder="Search archived guests…" style="width:240px" oninput="renderArchive()">
+    <select id="archive-filter" onchange="renderArchive()" style="width:160px">
+      <option value="all">All Archived</option>
+      <option value="completed">Completed Only</option>
+      <option value="dead">Dead Clients Only</option>
+    </select>
+    <span id="archive-count" style="font-size:12px;color:var(--text-muted)"></span>
+  </div>
+  <div id="archive-board"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- =========================================================
+     MODALS
+     ========================================================= -->
+
+<!-- ENQUIRY MODAL -->
+<div class="modal-overlay" id="modal-enquiry">
+<div class="modal">
+  <div class="modal-header">
+    <div class="modal-title" id="enq-modal-title">New Enquiry</div>
+    <button class="modal-close" onclick="closeModal('modal-enquiry')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-section">
+      <div class="fsec-title">Guest Information</div>
+      <div class="form-grid">
+        <div class="fg"><label>Full Name *</label><input id="f-name" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Email *</label><input id="f-email" type="email" placeholder="jane@email.com"></div>
+        <div class="fg"><label>Phone / WhatsApp</label><input id="f-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="fg"><label>Country</label><input id="f-country" placeholder="Australia"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="fsec-title">Villa Requirements</div>
+      <div class="form-grid3">
+        <div class="fg"><label>Preferred Location</label>
+          <select id="f-location">
+            <option value="">Any / Flexible</option>
+            <option>Seminyak</option><option>Canggu</option><option>Ubud</option>
+            <option>Uluwatu</option><option>Nusa Dua</option><option>Jimbaran</option>
+            <option>Kerobokan</option><option>Petitenget</option>
+          </select>
+        </div>
+        <div class="fg"><label>Bedrooms Needed</label>
+          <select id="f-bedrooms">
+            <option value="">Unknown</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option><option>9+</option>
+          </select>
+        </div>
+        <div class="fg"><label>Number of Guests</label><input id="f-guests" type="number" placeholder="8" min="1"></div>
+        <div class="fg"><label>Budget per Night (USD)</label><input id="f-budget" placeholder="$300–500"></div>
+        <div class="fg"><label>Check-in Date</label><input id="f-checkin" type="date"></div>
+        <div class="fg"><label>Check-out Date</label><input id="f-checkout" type="date"></div>
+      </div>
+      <div class="fg" style="margin-top:10px"><label>Notes / Special Requests</label><textarea id="f-notes" placeholder="Birthday, dietary, early check-in…"></textarea></div>
+    </div>
+    <div class="form-section">
+      <div class="fsec-title">Pipeline Stage</div>
+      <div class="stage-selector" id="stage-selector">
+        <div class="stage-btn" data-stage="new" onclick="selStage('new')">🌊 New Enquiry</div>
+        <div class="stage-btn" data-stage="villas" onclick="selStage('villas')">🏡 Needs Villas</div>
+        <div class="stage-btn" data-stage="followup1" onclick="selStage('followup1')">📞 1st Follow Up</div>
+        <div class="stage-btn" data-stage="followup2" onclick="selStage('followup2')">🔔 2nd Follow Up</div>
+        <div class="stage-btn" data-stage="hold" onclick="selStage('hold')">⏸️ Villa on Hold</div>
+        <div class="stage-btn" data-stage="invoice" onclick="selStage('invoice')">🧾 Invoice Sent</div>
+        <div class="stage-btn" data-stage="confirmed" onclick="selStage('confirmed')">✅ Confirmed</div>
+        <div class="stage-btn" data-stage="completed" onclick="selStage('completed')">🌴 Completed</div>
+        <div class="stage-btn" data-stage="dead" onclick="selStage('dead')">💀 Dead Client</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-enquiry')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-enq" style="display:none" onclick="deleteEnquiry()">Delete</button>
+      <button class="btn btn-teak" onclick="saveEnquiry()">Save</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal-detail">
+<div class="modal">
+  <div class="modal-header">
+    <div class="modal-title" id="detail-name">Guest Details</div>
+    <button class="modal-close" onclick="closeModal('modal-detail')">×</button>
+  </div>
+  <div class="modal-body" id="detail-body"></div>
+</div>
+</div>
+
+<!-- STAY DETAIL MODAL -->
+<div class="modal-overlay" id="modal-stay">
+<div class="modal modal-wide">
+  <div class="modal-header" style="background:var(--forest,#2a7a5a)">
+    <div class="modal-title" id="stay-modal-title">Confirmed Stay Details</div>
+    <button class="modal-close" onclick="closeModal('modal-stay')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-section">
+      <div class="fsec-title">Villa Assignment</div>
+      <div class="form-grid">
+        <div class="fg"><label>Villa Name</label><input id="s-villa" placeholder="Villa Kalis"></div>
+        <div class="fg"><label>Villa Location</label><input id="s-villa-loc" placeholder="Seminyak"></div>
+        <div class="fg"><label>Villa Address</label><input id="s-villa-addr" placeholder="Jl. Kayu Aya No. 88, Seminyak"></div>
+        <div class="fg"><label>Villa Manager Name</label><input id="s-vm-name" placeholder="Wayan"></div>
+        <div class="fg"><label>Villa Manager Phone</label><input id="s-vm-phone" placeholder="+62 812 xxx xxxx"></div>
+        <div class="fg"><label>Balance Due (USD)</label><input id="s-balance" type="number" placeholder="2400"></div>
+        <div class="fg"><label>Balance Paid?</label>
+          <select id="s-balance-paid">
+            <option>No</option>
+            <option>Yes</option>
+            <option>Partial</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="fsec-title">Logistics &amp; Services Booked</div>
+      <div class="form-grid3">
+        <div class="fg"><label>🚗 Airport Pickup (Check-in)</label><input id="s-cars" placeholder="e.g. 2x airport transfer, 14:00"></div>
+        <div class="fg"><label>🚗 Airport Drop-off (Check-out)</label><input id="s-checkout-car" placeholder="e.g. 1x transfer to airport, 10:00"></div>
+        <div class="fg"><label>🍽️ Meals / Chef</label><input id="s-meals" placeholder="e.g. Private chef dinner Tue"></div>
+        <div class="fg"><label>🌊 Tours / Activities</label><input id="s-tours" placeholder="e.g. Lembongan day trip"></div>
+        <div class="fg"><label>✨ In-villa Services</label><input id="s-services" placeholder="e.g. Massage, yoga, cake"></div>
+        <div class="fg"><label>⭐ Special Arrangements</label><input id="s-special" placeholder="e.g. Birthday flowers on arrival"></div>
+      </div>
+      <div class="fg" style="margin-top:10px"><label>Internal Logistics Notes</label><textarea id="s-notes" placeholder="Driver contact, key collection, any special instructions for the team…"></textarea></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-stay')">Cancel</button>
+      <button class="btn btn-teak" onclick="saveStayDetails()">Save Stay Details</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ACTIVITY MODAL -->
+<div class="modal-overlay" id="modal-activity">
+<div class="modal" style="max-width:600px">
+  <div class="modal-header" style="background:#7b68c8">
+    <div class="modal-title" id="act-modal-title">Add Activity / Service Booking</div>
+    <button class="modal-close" onclick="closeModal('modal-activity')">×</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Use this for standalone activities, party buses, day trips, spa bookings, and any service that doesn't need a full villa stay — it will appear directly in the Confirmed Stays calendar.</p>
+    <div class="form-section">
+      <div class="fsec-title">Guest &amp; Activity Details</div>
+      <div class="form-grid">
+        <div class="fg"><label>Guest Name *</label><input id="a-name" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Email</label><input id="a-email" type="email" placeholder="jane@email.com"></div>
+        <div class="fg"><label>Phone / WhatsApp</label><input id="a-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="fg"><label>Number of Guests</label><input id="a-guests" type="number" placeholder="8" min="1"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="fsec-title">Activity Information</div>
+      <div class="form-grid3">
+        <div class="fg"><label>Activity Type *</label>
+          <select id="a-type">
+            <option value="">Select type…</option>
+            <option>Party Bus</option>
+            <option>Day Trip / Tour</option>
+            <option>Lembongan Boat Trip</option>
+            <option>Cooking Class</option>
+            <option>Spa / Massage</option>
+            <option>Yoga Session</option>
+            <option>Private Chef Dinner</option>
+            <option>Photographer / Videographer</option>
+            <option>DJ / Entertainment</option>
+            <option>Decoration / Setup</option>
+            <option>Airport Transfer</option>
+            <option>Other Service</option>
+          </select>
+        </div>
+        <div class="fg"><label>Date *</label><input id="a-date" type="date"></div>
+        <div class="fg"><label>Time</label><input id="a-time" type="time" placeholder="14:00"></div>
+      </div>
+      <div class="form-grid" style="margin-top:10px">
+        <div class="fg"><label>Pickup Location</label><input id="a-pickup" placeholder="e.g. Villa Kalis, Seminyak"></div>
+        <div class="fg"><label>Price (USD)</label><input id="a-price" type="number" placeholder="250"></div>
+        <div class="fg full"><label>Activity Details</label><input id="a-details" placeholder="e.g. 4hr party bus tour, includes drinks, DJ, 3 stops"></div>
+        <div class="fg full"><label>Supplier Contact Info</label><input id="a-supplier" placeholder="e.g. Wayan +62 813 xxxx xxxx"></div>
+        <div class="fg full"><label>Internal Notes</label><textarea id="a-notes" placeholder="Supplier contact, special requirements, confirmation numbers…" style="min-height:55px"></textarea></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-activity')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-act" style="display:none" onclick="deleteActivity()">Delete</button>
+      <button class="btn btn-sm" style="background:#7b68c8;color:white" onclick="saveActivity()">Save Activity</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- EMAIL EDITOR MODAL -->
+<div class="modal-overlay" id="modal-email">
+<div class="modal">
+  <div class="modal-header">
+    <div class="modal-title">Email Template</div>
+    <button class="modal-close" onclick="closeModal('modal-email')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="fg"><label>Trigger Type</label>
+        <select id="e-trigger">
+          <option value="pre">Days Before Check-in</option>
+          <option value="post">Days After Check-out</option>
+          <option value="inhouse">Day After Check-in (In-House)</option>
+          <option value="payment">Payment / Balance Reminder</option>
+          <option value="followup">Stage Follow-up</option>
+        </select>
+      </div>
+      <div class="fg"><label>Days (0 = same day)</label><input id="e-days" type="number" placeholder="7"></div>
+      <div class="fg full"><label>Subject Line</label><input id="e-subject" placeholder="Subject…"></div>
+    </div>
+    <div class="fg"><label>Body (use {name} {villa} {checkin} {checkout} {location} {balance})</label>
+      <textarea id="e-body" style="min-height:220px;font-family:monospace;font-size:12px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-email')">Cancel</button>
+      <button class="btn btn-teak" onclick="saveEmail()">Save Template</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="notif" id="notif"></div>
+
