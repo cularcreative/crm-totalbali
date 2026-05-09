@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Total Bali Reservations CRM",
   "private": true,
-  "scripts": {
+  "scripts": {  
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

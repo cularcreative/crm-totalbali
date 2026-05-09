@@ -1,4 +1,4 @@
-﻿let enquiries = [];
+let enquiries = [];
 let stays = {};
 let activities = [];
 let emails = [];
@@ -114,7 +114,15 @@ function autoPromoteCompleted() {
       if(now > co) { e.stage = 'completed'; e.completedDate = today(); changed = true; }
     }
   });
-  if(changed) saveData();
+  if(changed) {
+    saveLocalBackup();
+    // Sync auto-promotions to the backend
+    enquiries.forEach(e => {
+      if(e.stage === 'completed' && e.completedDate) {
+        apiRequest('moveStage', { id: e.id, stage: 'completed' });
+      }
+    });
+  }
 }
 
 // ========== PIPELINE ==========
@@ -744,7 +752,9 @@ function saveEmail() {
 
 function delEmail(i) {
   if(!confirm('Delete this template?')) return;
-  emails.splice(i,1); saveData(); renderEmails();
+  emails.splice(i,1);
+  localStorage.setItem('tb_emails', JSON.stringify(emails));
+  renderEmails();
 }
 
 // ========== REMINDERS ==========
