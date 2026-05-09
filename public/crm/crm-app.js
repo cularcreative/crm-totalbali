@@ -111,17 +111,16 @@ function autoPromoteCompleted() {
   enquiries.forEach(e => {
     if(e.stage === 'confirmed' && e.checkout) {
       const co = new Date(e.checkout);
-      if(now > co) { e.stage = 'completed'; e.completedDate = today(); changed = true; }
+      if(now > co) { 
+        e.stage = 'completed'; 
+        e.completedDate = today(); 
+        changed = true; 
+        apiRequest('moveStage', { id: e.id, stage: 'completed' });
+      }
     }
   });
   if(changed) {
     saveLocalBackup();
-    // Sync auto-promotions to the backend
-    enquiries.forEach(e => {
-      if(e.stage === 'completed' && e.completedDate) {
-        apiRequest('moveStage', { id: e.id, stage: 'completed' });
-      }
-    });
   }
 }
 
