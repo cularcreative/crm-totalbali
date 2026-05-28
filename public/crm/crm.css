@@ -198,6 +198,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--sand);color:var(--text);m
 .btn-teak:hover{background:var(--teak-dark);}
 .btn-ghost{background:transparent;color:var(--ocean);border:1px solid var(--ocean);}
 .btn-ghost:hover{background:var(--ocean);color:white;}
+.header .btn-ghost{color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);}
+.header .btn-ghost:hover{background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.7);}
 .btn-sm{padding:4px 9px;font-size:11px;}
 .btn-danger{background:var(--danger);color:white;}
 .btn-success{background:var(--success);color:white;}
